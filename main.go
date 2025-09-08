@@ -30,6 +30,10 @@ var levelName = map[Level]string{
 
 var levelNameFormatted = map[Level]string{
 	LevelDebug: bold + string(Blue) + "DEBU" + reset,
+	LevelInfo:  string(LightYellow) + "INFO" + reset,
+	LevelWarn:  string(Yellow) + "WARN" + reset,
+	LevelError: string(Red) + "ERR" + reset,
+	LevelFatal: bold + string(Red) + "FATAL" + reset,
 }
 
 type Color string
