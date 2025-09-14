@@ -63,18 +63,22 @@ const (
 //TODO: Add any on the messaging arguments and not only string
 //TODO: Improve Logging
 
-func Debug(msg string) {
+func Debug(msg any, a ...any) {
+	format := fmt.Sprint(msg)
+	message := fmt.Sprintf(format, a...)
 	printStdout(
 		timestamp(),
 		" ",
 		levelNameFormatted[LevelDebug],
 		" ",
-		msg,
+		message,
 		"\n",
 	)
 }
 
-func DebugWithStack(msg string) {
+func DebugWithStack(msg any, a ...any) {
+	format := fmt.Sprint(msg)
+	message := fmt.Sprintf(format, a...)
 	printStdout(
 		timestamp(),
 		" ",
@@ -82,23 +86,27 @@ func DebugWithStack(msg string) {
 		" ",
 		stackLoc(2),
 		" ",
-		msg,
+		message,
 		"\n",
 	)
 }
 
-func Info(msg string) {
+func Info(msg any, a ...any) {
+	format := fmt.Sprint(msg)
+	message := fmt.Sprintf(format, a...)
 	printStdout(
 		timestamp(),
 		" ",
 		levelNameFormatted[LevelInfo],
 		" ",
-		msg,
+		message,
 		"\n",
 	)
 }
 
-func Error(msg string) {
+func Error(msg any, a ...any) {
+	format := fmt.Sprint(msg)
+	message := fmt.Sprintf(format, a...)
 	printStdout(
 		timestamp(),
 		" ",
@@ -107,7 +115,7 @@ func Error(msg string) {
 		stackLoc(2),
 		" ",
 		Red,
-		msg,
+		message,
 		reset,
 		"\n",
 	)
