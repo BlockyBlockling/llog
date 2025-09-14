@@ -27,6 +27,9 @@ func LogLevels(t *testing.T) {
 	SetLogLevel(LevelInfo)
 	t.Log("Running with LogLevel Info")
 	RunLogFunctions()
+	SetLogLevel(LevelWarn)
+	t.Log("Running with LogLevel Warn")
+	RunLogFunctions()
 	SetLogLevel(LevelError)
 	t.Log("Running with LogLevel Error")
 	RunLogFunctions()
@@ -36,5 +39,6 @@ func RunLogFunctions() {
 	Debug("Testing")
 	DebugWithStack("Testing")
 	Info("Testing")
+	Warn("Testing")
 	Error("Testing")
 }

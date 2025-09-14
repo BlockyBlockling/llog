@@ -30,7 +30,7 @@ var levelName = map[Level]string{
 
 var levelNameFormatted = map[Level]string{
 	LevelDebug: bold + string(Blue) + "DEBU" + reset,
-	LevelInfo:  string(LightYellow) + "INFO" + reset,
+	LevelInfo:  string(LightGreen) + "INFO" + reset,
 	LevelWarn:  string(Yellow) + "WARN" + reset,
 	LevelError: string(Red) + "ERR" + reset,
 	LevelFatal: bold + string(Red) + "FATAL" + reset,
@@ -115,6 +115,26 @@ func Info(msg any, a ...any) {
 		levelNameFormatted[LevelInfo],
 		" ",
 		message,
+		"\n",
+	)
+}
+
+func Warn(msg any, a ...any) {
+	if currentLevel > LevelWarn {
+		return
+	}
+	format := fmt.Sprint(msg)
+	message := fmt.Sprintf(format, a...)
+	printStdout(
+		timestamp(),
+		" ",
+		levelNameFormatted[LevelWarn],
+		" ",
+		stackLoc(2),
+		" ",
+		Yellow,
+		message,
+		reset,
 		"\n",
 	)
 }
