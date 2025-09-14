@@ -60,10 +60,18 @@ const (
 	White        Color = "\033[97m"
 )
 
-//TODO: Add any on the messaging arguments and not only string
+var currentLevel Level
+
 //TODO: Improve Logging
 
+func SetLogLevel(level Level) {
+	currentLevel = level
+}
+
 func Debug(msg any, a ...any) {
+	if currentLevel > LevelDebug {
+		return
+	}
 	format := fmt.Sprint(msg)
 	message := fmt.Sprintf(format, a...)
 	printStdout(
@@ -77,6 +85,10 @@ func Debug(msg any, a ...any) {
 }
 
 func DebugWithStack(msg any, a ...any) {
+	if currentLevel > LevelDebug {
+		return
+	}
+
 	format := fmt.Sprint(msg)
 	message := fmt.Sprintf(format, a...)
 	printStdout(
@@ -92,6 +104,9 @@ func DebugWithStack(msg any, a ...any) {
 }
 
 func Info(msg any, a ...any) {
+	if currentLevel > LevelInfo {
+		return
+	}
 	format := fmt.Sprint(msg)
 	message := fmt.Sprintf(format, a...)
 	printStdout(
@@ -105,6 +120,9 @@ func Info(msg any, a ...any) {
 }
 
 func Error(msg any, a ...any) {
+	if currentLevel > LevelError {
+		return
+	}
 	format := fmt.Sprint(msg)
 	message := fmt.Sprintf(format, a...)
 	printStdout(
@@ -124,6 +142,9 @@ func Error(msg any, a ...any) {
 // Recieve an Error with a possible Nil value. It will only log if err != nil
 // TODO: Add an optional attribute to add custom messages to the error
 func ErrNil(err error) (errNotNil bool) {
+	if currentLevel > LevelError {
+		return
+	}
 	if err != nil {
 
 		printStdout(
