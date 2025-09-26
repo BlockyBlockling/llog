@@ -63,6 +63,7 @@ const (
 var currentLevel Level
 
 //TODO: Improve Logging
+//TODO: Implement test coverage Thresholds. Via .testcoverage.yml
 
 func SetLogLevel(level Level) {
 	currentLevel = level
