@@ -206,7 +206,7 @@ func Fatal(msg any, a ...any) {
 	)
 
 	//Exit
-	os.Exit(1)
+	panic(message)
 }
 
 func FatalNil(err error) (errNotNil bool) {
@@ -229,7 +229,7 @@ func FatalNil(err error) (errNotNil bool) {
 		)
 
 		//Exit
-		os.Exit(1)
+		panic(err.Error())
 	}
 	return false
 }
