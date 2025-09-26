@@ -253,5 +253,5 @@ func stackLoc(skip int) string {
 	_, file, line, _ := runtime.Caller(skip)
 	fileLocal := strings.TrimPrefix(file, cwd)
 
-	return string(DarkGray) + fileLocal + ":" + strconv.Itoa(line)
+	return string(DarkGray) + fileLocal + ":" + strconv.Itoa(line) + reset
 }
