@@ -62,6 +62,7 @@ const (
 
 var currentLevel Level
 
+//TODO: Write README.md
 //TODO: Improve Logging
 //TODO: Implement test coverage Thresholds. Via .testcoverage.yml
 //TODO: Add normal logging using Print
