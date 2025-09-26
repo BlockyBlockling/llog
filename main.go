@@ -64,6 +64,10 @@ var currentLevel Level
 
 //TODO: Improve Logging
 //TODO: Implement test coverage Thresholds. Via .testcoverage.yml
+//TODO: Add normal logging using Print
+//TODO: Add Level Changing
+//TODO: Improve/Centralize Logger to prevent code iterations
+//TODO: Add Multiline indented Logging via Custom Function NextLine() to be implemented into the Loggers
 
 func SetLogLevel(level Level) {
 	currentLevel = level
