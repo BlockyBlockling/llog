@@ -185,6 +185,55 @@ func ErrNil(err error) (errNotNil bool) {
 	return false
 }
 
+func Fatal(msg any, a ...any) {
+	if currentLevel > LevelError {
+		return
+	}
+	format := fmt.Sprint(msg)
+	message := fmt.Sprintf(format, a...)
+	printStdout(
+		timestamp(),
+		" ",
+		levelNameFormatted[LevelFatal],
+		" ",
+		stackLoc(2),
+		" ",
+		bold,
+		Red,
+		message,
+		reset,
+		"\n",
+	)
+
+	//Exit
+	os.Exit(1)
+}
+
+func FatalNil(err error) (errNotNil bool) {
+	if currentLevel > LevelError {
+		return
+	}
+	if err != nil {
+		printStdout(
+			timestamp(),
+			" ",
+			levelNameFormatted[LevelFatal],
+			" ",
+			stackLoc(2),
+			" ",
+			bold,
+			Red,
+			err.Error(),
+			reset,
+			"\n",
+		)
+
+		//Exit
+		os.Exit(1)
+	}
+	return false
+}
+
 // TODO: Add an argument adding spaces between components
 func printStdout(components ...any) {
 	//Printing to Stdout
