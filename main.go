@@ -1,8 +1,9 @@
 package llog
 
 import (
+	"errors"
 	"fmt"
-	"log"
+	"io"
 	"os"
 	"runtime"
 	"strconv"
@@ -60,18 +61,46 @@ const (
 	White        Color = "\033[97m"
 )
 
+var stdout io.Writer = os.Stdout
 var currentLevel Level
 
 //TODO: Write README.md
 //TODO: Improve Logging
 //TODO: Implement test coverage Thresholds. Via .testcoverage.yml
-//TODO: Add normal logging using Print
-//TODO: Add Level Changing
 //TODO: Improve/Centralize Logger to prevent code iterations
 //TODO: Add Multiline indented Logging via Custom Function NextLine() to be implemented into the Loggers
 
 func SetLogLevel(level Level) {
 	currentLevel = level
+}
+
+func GetLevelByName(name string) (Level, error) {
+	switch name {
+	case levelName[LevelDebug]:
+		return LevelDebug, nil
+	case levelName[LevelInfo]:
+		return LevelInfo, nil
+	case levelName[LevelWarn]:
+		return LevelWarn, nil
+	case levelName[LevelError]:
+		return LevelError, nil
+	case levelName[LevelFatal]:
+		return LevelFatal, nil
+	default:
+		return 0, errors.New("Level not found")
+	}
+}
+
+func Print(msg any, a ...any) {
+	format := fmt.Sprint(msg)
+	message := fmt.Sprintf(format, a...)
+	printStdout(
+		timestamp(),
+		" ",
+		message,
+		reset,
+		"\n",
+	)
 }
 
 func Debug(msg any, a ...any) {
@@ -86,6 +115,7 @@ func Debug(msg any, a ...any) {
 		levelNameFormatted[LevelDebug],
 		" ",
 		message,
+		reset,
 		"\n",
 	)
 }
@@ -105,6 +135,7 @@ func DebugWithStack(msg any, a ...any) {
 		stackLoc(2),
 		" ",
 		message,
+		reset,
 		"\n",
 	)
 }
@@ -121,6 +152,7 @@ func Info(msg any, a ...any) {
 		levelNameFormatted[LevelInfo],
 		" ",
 		message,
+		reset,
 		"\n",
 	)
 }
@@ -243,14 +275,14 @@ func FatalNil(err error) (errNotNil bool) {
 // TODO: Add an argument adding spaces between components
 func printStdout(components ...any) {
 	//Printing to Stdout
-	_, err := fmt.Fprint(os.Stdout, components...)
+	_, err := fmt.Fprint(stdout, components...)
 	if err != nil {
-		log.Fatalln(err.Error())
+		panic("Failed to print to Stdout")
 	}
 }
 
 func timestamp() string {
-	return string(DarkGray) + time.Now().Format("2006/01/02 15:04:05")
+	return string(DarkGray) + time.Now().Format("2006/01/02 15:04:05") + reset
 }
 
 func stackLoc(skip int) string {
