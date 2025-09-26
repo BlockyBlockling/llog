@@ -46,3 +46,10 @@ jobs:
         ## name of branch where badges are stored
         ## ideally this should be orphan branch (see below how to create this branch)
         git-branch: badges 
+    - name: visualize coverage
+      run: go tool cover -html=cover.out -o=cover.html
+    - name: upload visualization
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-visualization
+        path: ./cover.html
