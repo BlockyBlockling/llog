@@ -103,107 +103,78 @@ func Print(msg any, a ...any) {
 }
 
 func Debug(msg any, a ...any) {
-	if currentLevel > LevelDebug {
-		return
+	if currentLevel <= LevelDebug {
+		format := fmt.Sprint(msg)
+		message := fmt.Sprintf(format, a...)
+		printStdout(
+			timestamp(),
+			" ",
+			levelNameFormatted[LevelDebug],
+			" ",
+			message,
+			reset,
+			"\n",
+		)
 	}
-	format := fmt.Sprint(msg)
-	message := fmt.Sprintf(format, a...)
-	printStdout(
-		timestamp(),
-		" ",
-		levelNameFormatted[LevelDebug],
-		" ",
-		message,
-		reset,
-		"\n",
-	)
 }
 
 func DebugWithStack(msg any, a ...any) {
-	if currentLevel > LevelDebug {
-		return
+	if currentLevel <= LevelDebug {
+		format := fmt.Sprint(msg)
+		message := fmt.Sprintf(format, a...)
+		printStdout(
+			timestamp(),
+			" ",
+			levelNameFormatted[LevelDebug],
+			" ",
+			stackLoc(2),
+			" ",
+			message,
+			reset,
+			"\n",
+		)
 	}
-
-	format := fmt.Sprint(msg)
-	message := fmt.Sprintf(format, a...)
-	printStdout(
-		timestamp(),
-		" ",
-		levelNameFormatted[LevelDebug],
-		" ",
-		stackLoc(2),
-		" ",
-		message,
-		reset,
-		"\n",
-	)
 }
 
 func Info(msg any, a ...any) {
-	if currentLevel > LevelInfo {
-		return
+	if currentLevel <= LevelInfo {
+		format := fmt.Sprint(msg)
+		message := fmt.Sprintf(format, a...)
+		printStdout(
+			timestamp(),
+			" ",
+			levelNameFormatted[LevelInfo],
+			" ",
+			message,
+			reset,
+			"\n",
+		)
 	}
-	format := fmt.Sprint(msg)
-	message := fmt.Sprintf(format, a...)
-	printStdout(
-		timestamp(),
-		" ",
-		levelNameFormatted[LevelInfo],
-		" ",
-		message,
-		reset,
-		"\n",
-	)
 }
 
 func Warn(msg any, a ...any) {
-	if currentLevel > LevelWarn {
-		return
+	if currentLevel <= LevelWarn {
+		format := fmt.Sprint(msg)
+		message := fmt.Sprintf(format, a...)
+		printStdout(
+			timestamp(),
+			" ",
+			levelNameFormatted[LevelWarn],
+			" ",
+			stackLoc(2),
+			" ",
+			Yellow,
+			message,
+			reset,
+			"\n",
+		)
 	}
-	format := fmt.Sprint(msg)
-	message := fmt.Sprintf(format, a...)
-	printStdout(
-		timestamp(),
-		" ",
-		levelNameFormatted[LevelWarn],
-		" ",
-		stackLoc(2),
-		" ",
-		Yellow,
-		message,
-		reset,
-		"\n",
-	)
 }
 
 func Error(msg any, a ...any) {
-	if currentLevel > LevelError {
-		return
-	}
-	format := fmt.Sprint(msg)
-	message := fmt.Sprintf(format, a...)
-	printStdout(
-		timestamp(),
-		" ",
-		levelNameFormatted[LevelError],
-		" ",
-		stackLoc(2),
-		" ",
-		Red,
-		message,
-		reset,
-		"\n",
-	)
-}
-
-// Recieve an Error with a possible Nil value. It will only log if err != nil
-// TODO: Add an optional attribute to add custom messages to the error
-func ErrNil(err error) (errNotNil bool) {
-	if currentLevel > LevelError {
-		return
-	}
-	if err != nil {
-
+	if currentLevel <= LevelError {
+		format := fmt.Sprint(msg)
+		message := fmt.Sprintf(format, a...)
 		printStdout(
 			timestamp(),
 			" ",
@@ -212,45 +183,42 @@ func ErrNil(err error) (errNotNil bool) {
 			stackLoc(2),
 			" ",
 			Red,
-			err.Error(),
+			message,
 			reset,
 			"\n",
 		)
+	}
+}
 
-		return true
+// Recieve an Error with a possible Nil value. It will only log if err != nil
+// TODO: Add an optional attribute to add custom messages to the error
+func ErrNil(err error) (errNotNil bool) {
+	if currentLevel <= LevelError {
+		if err != nil {
+
+			printStdout(
+				timestamp(),
+				" ",
+				levelNameFormatted[LevelError],
+				" ",
+				stackLoc(2),
+				" ",
+				Red,
+				err.Error(),
+				reset,
+				"\n",
+			)
+
+			return true
+		}
 	}
 	return false
 }
 
 func Fatal(msg any, a ...any) {
-	if currentLevel > LevelError {
-		return
-	}
-	format := fmt.Sprint(msg)
-	message := fmt.Sprintf(format, a...)
-	printStdout(
-		timestamp(),
-		" ",
-		levelNameFormatted[LevelFatal],
-		" ",
-		stackLoc(2),
-		" ",
-		bold,
-		Red,
-		message,
-		reset,
-		"\n",
-	)
-
-	//Exit
-	panic(message)
-}
-
-func FatalNil(err error) (errNotNil bool) {
-	if currentLevel > LevelError {
-		return
-	}
-	if err != nil {
+	if currentLevel <= LevelFatal {
+		format := fmt.Sprint(msg)
+		message := fmt.Sprintf(format, a...)
 		printStdout(
 			timestamp(),
 			" ",
@@ -260,13 +228,36 @@ func FatalNil(err error) (errNotNil bool) {
 			" ",
 			bold,
 			Red,
-			err.Error(),
+			message,
 			reset,
 			"\n",
 		)
 
 		//Exit
-		panic(err.Error())
+		panic(message)
+	}
+}
+
+func FatalNil(err error) (errNotNil bool) {
+	if currentLevel <= LevelFatal {
+		if err != nil {
+			printStdout(
+				timestamp(),
+				" ",
+				levelNameFormatted[LevelFatal],
+				" ",
+				stackLoc(2),
+				" ",
+				bold,
+				Red,
+				err.Error(),
+				reset,
+				"\n",
+			)
+
+			//Exit
+			panic(err.Error())
+		}
 	}
 	return false
 }

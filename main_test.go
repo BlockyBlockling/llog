@@ -71,8 +71,20 @@ func StdOutTest(t *testing.T) {
 
 	//reset stdout
 	stdout = os.Stdout
-
 }
+
+const (
+	resetRegex     string = `\x1b\[0m`
+	messageRegex   string = "Testing" + resetRegex
+	timestampRegex string = `\x1b\[90m\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}` + resetRegex
+	stackRegex     string = `\x1b\[90mmain_test\.go:\d+` + resetRegex
+)
+
+var debugRegex string = strings.ReplaceAll(levelNameFormatted[LevelDebug], `[`, `\[`)
+var infoRegex string = strings.ReplaceAll(levelNameFormatted[LevelInfo], `[`, `\[`)
+var warnRegex string = strings.ReplaceAll(levelNameFormatted[LevelWarn], `[`, `\[`)
+var errorRegex string = strings.ReplaceAll(levelNameFormatted[LevelError], `[`, `\[`)
+var fatalRegex string = strings.ReplaceAll(levelNameFormatted[LevelFatal], `[`, `\[`)
 
 func BaseFunctions(t *testing.T) {
 	// create a buffer
@@ -80,7 +92,6 @@ func BaseFunctions(t *testing.T) {
 
 	// overwrite the default writer
 	stdout = &buf
-	buf.Reset()
 
 	RunLogFunctions()
 
@@ -88,17 +99,6 @@ func BaseFunctions(t *testing.T) {
 
 	//Check expected Output
 	var currentLine int = 0
-
-	//TODO: Automate colorcodes on regex with the colocodes on the liberary
-	//like strings.ReplaceAll(levelNameFormatted[LevelDebug], "[", `\[`)
-	resetRegex := `\x1b\[0m`
-	messageRegex := "Testing" + resetRegex
-	timestampRegex := `\x1b\[90m\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}` + resetRegex
-	stackRegex := `\x1b\[90mmain_test\.go:\d+` + resetRegex
-	debugRegex := `\x1b\[1m\x1b\[34mDEBU` + resetRegex
-	infoRegex := `\x1b\[92mINFO` + resetRegex
-	warnRegex := `\x1b\[33mWARN` + resetRegex
-	errorRegex := `\x1b\[31mERR` + resetRegex
 
 	// timestamp (YYYY/MM/DD HH:MM:SS) + message
 	reg := regexp.MustCompile(timestampRegex + " Testing")
@@ -221,19 +221,275 @@ func GetLevels(t *testing.T) {
 
 func LogLevels(t *testing.T) {
 	SetLogLevel(LevelDebug)
+	// create a buffer
+	var buf bytes.Buffer
+
+	// overwrite the default writer
+	stdout = &buf
+
 	t.Log("Running with LogLevel Debug")
 	RunLogFunctions()
+
+	lines := strings.Split(buf.String(), "\n")
+
+	//Check expected Output
+	var currentLine int = 0
+
+	// timestamp (YYYY/MM/DD HH:MM:SS) + message
+	reg := regexp.MustCompile(timestampRegex + " Testing")
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected print log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	// timestamp + DEBU + message
+	reg = regexp.MustCompile(timestampRegex + " " + debugRegex + " " + messageRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected debug log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	// timestamp + DEBU + filename:line + message
+	reg = regexp.MustCompile(timestampRegex + " " + debugRegex + " " + stackRegex + " " + messageRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected debugstack log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	//timespamp + INFO + message
+	reg = regexp.MustCompile(timestampRegex + " " + infoRegex + " " + messageRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected info log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	// timestamp + WARN + filename:line+ message
+	reg = regexp.MustCompile(timestampRegex + " " + warnRegex + " " + stackRegex + " " + `\x1b\[33m` + messageRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected warn log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	// timestamp + ERR + filename:line + message
+	reg = regexp.MustCompile(timestampRegex + " " + errorRegex + " " + stackRegex + " " + `\x1b\[31m` + messageRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected error log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	if lines[currentLine] == "" {
+		//Empty Line (as expected)
+		currentLine++
+	}
+
+	if currentLine != len(lines) {
+		t.Errorf("More lines Printed than analysed. Missing %d line/s.", len(lines)-currentLine)
+		t.Log(buf.String())
+	}
+
+	// create a new buffer
+	buf = *bytes.NewBuffer([]byte{})
+
+	// overwrite the writer
+	stdout = &buf
+
 	SetLogLevel(LevelInfo)
 	t.Log("Running with LogLevel Info")
 	RunLogFunctions()
+
+	lines = strings.Split(buf.String(), "\n")
+
+	//Check expected Output
+	currentLine = 0
+
+	// timestamp (YYYY/MM/DD HH:MM:SS) + message
+	reg = regexp.MustCompile(timestampRegex + " Testing")
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected print log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	//timespamp + INFO + message
+	reg = regexp.MustCompile(timestampRegex + " " + infoRegex + " " + messageRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected info log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	// timestamp + WARN + filename:line+ message
+	reg = regexp.MustCompile(timestampRegex + " " + warnRegex + " " + stackRegex + " " + `\x1b\[33m` + messageRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected warn log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	// timestamp + ERR + filename:line + message
+	reg = regexp.MustCompile(timestampRegex + " " + errorRegex + " " + stackRegex + " " + `\x1b\[31m` + messageRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected error log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	if lines[currentLine] == "" {
+		//Empty Line (as expected)
+		currentLine++
+	}
+
+	if currentLine != len(lines) {
+		t.Errorf("More lines Printed than analysed. Missing %d line/s.", len(lines)-currentLine)
+		t.Log(buf.String())
+	}
+
+	// create a new buffer
+	buf = *bytes.NewBuffer([]byte{})
+
+	// overwrite the writer
+	stdout = &buf
+
 	SetLogLevel(LevelWarn)
 	t.Log("Running with LogLevel Warn")
 	RunLogFunctions()
+
+	lines = strings.Split(buf.String(), "\n")
+
+	//Check expected Output
+	currentLine = 0
+
+	// timestamp (YYYY/MM/DD HH:MM:SS) + message
+	reg = regexp.MustCompile(timestampRegex + " Testing")
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected print log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	// timestamp + WARN + filename:line+ message
+	reg = regexp.MustCompile(timestampRegex + " " + warnRegex + " " + stackRegex + " " + `\x1b\[33m` + messageRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected warn log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	// timestamp + ERR + filename:line + message
+	reg = regexp.MustCompile(timestampRegex + " " + errorRegex + " " + stackRegex + " " + `\x1b\[31m` + messageRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected error log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	if lines[currentLine] == "" {
+		//Empty Line (as expected)
+		currentLine++
+	}
+
+	if currentLine != len(lines) {
+		t.Errorf("More lines Printed than analysed. Missing %d line/s.", len(lines)-currentLine)
+		t.Log(buf.String())
+	}
+
+	// create a new buffer
+	buf = *bytes.NewBuffer([]byte{})
+
+	// overwrite the writer
+	stdout = &buf
+
 	SetLogLevel(LevelError)
 	t.Log("Running with LogLevel Error")
 	RunLogFunctions()
 
-	//TODO: Add test for ErrNil
+	lines = strings.Split(buf.String(), "\n")
+
+	//Check expected Output
+	currentLine = 0
+
+	// timestamp (YYYY/MM/DD HH:MM:SS) + message
+	reg = regexp.MustCompile(timestampRegex + " Testing")
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected print log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	// timestamp + ERR + filename:line + message
+	reg = regexp.MustCompile(timestampRegex + " " + errorRegex + " " + stackRegex + " " + `\x1b\[31m` + messageRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected error log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	if lines[currentLine] == "" {
+		//Empty Line (as expected)
+		currentLine++
+	}
+
+	if currentLine != len(lines) {
+		t.Errorf("More lines Printed than analysed. Missing %d line/s.", len(lines)-currentLine)
+		t.Log(buf.String())
+	}
+
+	//reset stdout
+	stdout = os.Stdout
+
+	//reset log Level
+	SetLogLevel(LevelDebug)
 }
 
 func RunLogFunctions() {
@@ -248,6 +504,12 @@ func RunLogFunctions() {
 func TestFatal(t *testing.T) {
 	testingMessage := "Testing Fatal log"
 
+	// create a buffer
+	buf := *bytes.NewBuffer([]byte{})
+
+	// overwrite writer
+	stdout = &buf
+
 	// Use a deferred function to recover from panic
 	defer func() {
 		r := recover() // Catch panic
@@ -258,11 +520,40 @@ func TestFatal(t *testing.T) {
 			t.Fail()
 		} else if r != testingMessage {
 			t.Errorf("Unexpected panic message: %v", r)
+		} else {
+			// Validate Logging
+			lines := strings.Split(buf.String(), "\n")
+			var currentLine int = 0
+
+			// timestamp + FATAL + filename:line + message
+			reg := regexp.MustCompile(timestampRegex + " " + fatalRegex + " " + stackRegex + " " + `\x1b\[1m\x1b\[31m` + testingMessage)
+			if !reg.MatchString(lines[currentLine]) {
+				t.Errorf("expected error log line not recieved")
+				t.Log("Regex: " + reg.String())
+				t.Logf("%q\n", lines[currentLine])
+				clean := reg.ReplaceAllString(lines[currentLine], "")
+				t.Errorf("Not matching: %q", clean)
+			}
+			currentLine++
+
+			if lines[currentLine] == "" {
+				//Empty Line (as expected)
+				currentLine++
+			}
+
+			if currentLine != len(lines) {
+				t.Errorf("More lines Printed than analysed. Missing %d line/s.", len(lines)-currentLine)
+				t.Log(buf.String())
+			}
+
+			stdout = os.Stdout
 		}
 	}()
 
 	// Call the Fatal function, which should panic
 	Fatal(testingMessage)
+
+	stdout = os.Stdout
 }
 
 type testerror struct{}
