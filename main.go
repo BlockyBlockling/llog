@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -91,8 +92,7 @@ func GetLevelByName(name string) (Level, error) {
 }
 
 func Print(msg any, a ...any) {
-	format := fmt.Sprint(msg)
-	message := fmt.Sprintf(format, a...)
+	message := formatMessage(msg, a...)
 	printStdout(
 		timestamp(),
 		" ",
@@ -104,8 +104,7 @@ func Print(msg any, a ...any) {
 
 func Debug(msg any, a ...any) {
 	if currentLevel <= LevelDebug {
-		format := fmt.Sprint(msg)
-		message := fmt.Sprintf(format, a...)
+		message := formatMessage(msg, a...)
 		printStdout(
 			timestamp(),
 			" ",
@@ -120,8 +119,7 @@ func Debug(msg any, a ...any) {
 
 func DebugWithStack(msg any, a ...any) {
 	if currentLevel <= LevelDebug {
-		format := fmt.Sprint(msg)
-		message := fmt.Sprintf(format, a...)
+		message := formatMessage(msg, a...)
 		printStdout(
 			timestamp(),
 			" ",
@@ -138,8 +136,7 @@ func DebugWithStack(msg any, a ...any) {
 
 func Info(msg any, a ...any) {
 	if currentLevel <= LevelInfo {
-		format := fmt.Sprint(msg)
-		message := fmt.Sprintf(format, a...)
+		message := formatMessage(msg, a...)
 		printStdout(
 			timestamp(),
 			" ",
@@ -154,8 +151,7 @@ func Info(msg any, a ...any) {
 
 func Warn(msg any, a ...any) {
 	if currentLevel <= LevelWarn {
-		format := fmt.Sprint(msg)
-		message := fmt.Sprintf(format, a...)
+		message := formatMessage(msg, a...)
 		printStdout(
 			timestamp(),
 			" ",
@@ -173,8 +169,7 @@ func Warn(msg any, a ...any) {
 
 func Error(msg any, a ...any) {
 	if currentLevel <= LevelError {
-		format := fmt.Sprint(msg)
-		message := fmt.Sprintf(format, a...)
+		message := formatMessage(msg, a...)
 		printStdout(
 			timestamp(),
 			" ",
@@ -260,6 +255,20 @@ func FatalNil(err error) (errNotNil bool) {
 		}
 	}
 	return false
+}
+
+func formatMessage(msg any, a ...any) string {
+	// Regular expression to match fmt directives
+	re := regexp.MustCompile(`%[sdv]`)
+
+	msgString, ok := msg.(string)
+	if ok {
+		if re.MatchString(msgString) {
+			return fmt.Sprintf(msgString, a...)
+		}
+	}
+	a = append([]any{msg}, a...)
+	return fmt.Sprint(a...)
 }
 
 // TODO: Add an argument adding spaces between components
