@@ -17,6 +17,10 @@ func TestMain(t *testing.T) {
 	//Test stdout
 	t.Run("Stdout Test", StdOutTest)
 
+	//Test formatter
+	t.Run("Formatter", Formatter)
+
+	//Test Base Functions
 	t.Run("Base Functions", BaseFunctions)
 
 	//Test Levels
@@ -85,6 +89,19 @@ var infoRegex string = strings.ReplaceAll(levelNameFormatted[LevelInfo], `[`, `\
 var warnRegex string = strings.ReplaceAll(levelNameFormatted[LevelWarn], `[`, `\[`)
 var errorRegex string = strings.ReplaceAll(levelNameFormatted[LevelError], `[`, `\[`)
 var fatalRegex string = strings.ReplaceAll(levelNameFormatted[LevelFatal], `[`, `\[`)
+
+func Formatter(t *testing.T) {
+	var result string
+	result = formatMessage("Hey", 0)
+	if result != "Hey0" {
+		t.Fail()
+	}
+
+	result = formatMessage("Hey %d", 0)
+	if result != "Hey 0" {
+		t.Fail()
+	}
+}
 
 func BaseFunctions(t *testing.T) {
 	// create a buffer
