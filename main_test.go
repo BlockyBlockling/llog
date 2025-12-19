@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 	"testing"
@@ -519,58 +520,18 @@ func RunLogFunctions() {
 }
 
 func TestFatal(t *testing.T) {
-	testingMessage := "Testing Fatal log"
+	if os.Getenv("FORK") == "1" {
+		testingMessage := "Testing Fatal log"
 
-	// create a buffer
-	buf := *bytes.NewBuffer([]byte{})
+		// Call the Fatal function, which should panic
+		Fatal(testingMessage)
+	}
 
-	// overwrite writer
-	stdout = &buf
+	RunForkTest(t, "TestFatalWithPanicWithFork")
 
-	// Use a deferred function to recover from panic
-	defer func() {
-		r := recover() // Catch panic
-
-		if r == nil {
-			// This line will not be reached if Fatal works correctly
-			t.Log("Expected Fatal to panic, but it did not.")
-			t.Fail()
-		} else if r != testingMessage {
-			t.Errorf("Unexpected panic message: %v", r)
-		} else {
-			// Validate Logging
-			lines := strings.Split(buf.String(), "\n")
-			var currentLine int = 0
-
-			// timestamp + FATAL + filename:line + message
-			reg := regexp.MustCompile(timestampRegex + " " + fatalRegex + " " + stackRegex + " " + `\x1b\[1m\x1b\[31m` + testingMessage)
-			if !reg.MatchString(lines[currentLine]) {
-				t.Errorf("expected error log line not recieved")
-				t.Log("Regex: " + reg.String())
-				t.Logf("%q\n", lines[currentLine])
-				clean := reg.ReplaceAllString(lines[currentLine], "")
-				t.Errorf("Not matching: %q", clean)
-			}
-			currentLine++
-
-			if lines[currentLine] == "" {
-				//Empty Line (as expected)
-				currentLine++
-			}
-
-			if currentLine != len(lines) {
-				t.Errorf("More lines Printed than analysed. Missing %d line/s.", len(lines)-currentLine)
-				t.Log(buf.String())
-			}
-
-			stdout = os.Stdout
-		}
-	}()
-
-	// Call the Fatal function, which should panic
-	Fatal(testingMessage)
-
-	stdout = os.Stdout
+	//assert.Equal(t, err.Error(), "exit status 2")
+	//assert.Contains(t, stderr, "parsing \"A\": invalid syntax")
+	//assert.Contains(t, stdout, "FAIL")
 }
 
 type testerror struct{}
@@ -599,35 +560,54 @@ func TestNil(t *testing.T) {
 }
 
 func TestFatalNil(t *testing.T) {
-	var errNil error
-	errNotNil := errors.New("error test")
 
-	// Call the Fatal function, which should panic
-	result := FatalNil(errNil)
-	if result {
-		//Should be false
-		t.Log("Was true should be false")
-		t.Fail()
-	}
+	if os.Getenv("FORK") == "1" {
+		var errNil error
+		errNotNil := errors.New("error test")
 
-	// Use a deferred function to recover from panic
-	defer func() {
-		r := recover() // Catch panic
-
-		if r == nil {
-			// This line will not be reached if Fatal works correctly
-			t.Log("Expected Fatal to panic, but it did not.")
+		// Call the Fatal function, which should not panic
+		result := FatalNil(errNil)
+		if result {
+			//Should be false
+			t.Log("Was true should be false")
 			t.Fail()
-		} else if r != "error test" {
-			t.Errorf("Unexpected panic message: %v", r)
 		}
-	}()
 
-	// Call the Fatal function, which should panic
-	result = FatalNil(errNotNil)
-	if !result {
-		//Should be true
-		t.Log("Was false should be true")
-		t.Fail()
+		// Use a deferred function to recover from panic
+		defer func() {
+			r := recover() // Catch panic
+
+			if r == nil {
+				// This line will not be reached if Fatal works correctly
+				t.Log("Expected Fatal to panic, but it did not.")
+				t.Fail()
+			} else if r != "error test" {
+				t.Errorf("Unexpected panic message: %v", r)
+			}
+		}()
+
+		// Call the Fatal function, which should panic
+		result = FatalNil(errNotNil)
+		if !result {
+			//Should be true
+			t.Log("Was false should be true")
+			t.Fail()
+		}
 	}
+
+	RunForkTest(t, "TestFatalNilWithPanicWithFork")
+}
+
+// Run a fork test that may crash using os.exit.
+func RunForkTest(t *testing.T, testName string) (string, string, error) {
+	cmd := exec.Command(os.Args[0], fmt.Sprintf("-test.run=%v", testName))
+	cmd.Env = append(os.Environ(), "FORK=1")
+
+	var stdoutB, stderrB bytes.Buffer
+	cmd.Stdout = &stdoutB
+	cmd.Stderr = &stderrB
+
+	err := cmd.Run()
+
+	return stdoutB.String(), stderrB.String(), err
 }

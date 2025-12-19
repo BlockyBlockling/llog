@@ -229,7 +229,7 @@ func Fatal(msg any, a ...any) {
 		)
 
 		//Exit
-		panic(message)
+		os.Exit(2) //using the same exit code as panic
 	}
 }
 
@@ -251,7 +251,7 @@ func FatalNil(err error) (errNotNil bool) {
 			)
 
 			//Exit
-			panic(err.Error())
+			os.Exit(2) //using the same exit code as panic
 		}
 	}
 	return false

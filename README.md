@@ -7,6 +7,6 @@ Another golang Logging Library
 ## Testing
 
 ```bash
-go test -coverprofile=coverage.out
+go test -v -tags noexit -coverprofile=coverage.out
 go tool cover -html=coverage.out
 ```
