@@ -167,6 +167,23 @@ func Warn(msg any, a ...any) {
 	}
 }
 
+func WarnWithStack(msg any, a ...any){
+	if currentLevel <= LevelDebug {
+		message := formatMessage(msg, a...)
+		printStdout(
+			timestamp(),
+			" ",
+			levelNameFormatted[LevelWarn],
+			" ",
+			stackLoc(2),
+			" ",
+			message,
+			reset,
+			"\n",
+		)
+	}
+}
+
 func Error(msg any, a ...any) {
 	if currentLevel <= LevelError {
 		message := formatMessage(msg, a...)
