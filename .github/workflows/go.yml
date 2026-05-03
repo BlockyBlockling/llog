@@ -13,8 +13,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    environment:
-      name: LLOG Test Main
+    environment: ${{ github.ref_name == 'main' && 'LLOG Test Main' || '' }}
     env:
       TEST_MAIL_ADDRESS: ${{vars.TEST_MAIL_ADDRESS}}
       TEST_MAIL_TARGET: ${{vars.TEST_MAIL_TARGET}}
