@@ -20,7 +20,10 @@ jobs:
       TEST_MAIL_USERNAME: ${{secrets.TEST_MAIL_USERNAME}}
       TEST_MAIL_PASSWORD: ${{secrets.TEST_MAIL_PASSWORD}}
     steps:
+    
     - uses: actions/checkout@v4
+    - name: Debug env
+      run: env | grep TEST_MAIL_ADDRESS
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
