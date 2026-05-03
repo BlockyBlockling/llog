@@ -31,6 +31,14 @@ jobs:
   coverage:
     name: Check test coverage
     runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'LLOG Test Main' || '' }}
+    env:
+      TEST_MAIL_ADDRESS: ${{vars.TEST_MAIL_ADDRESS}}
+      TEST_MAIL_TARGET: ${{vars.TEST_MAIL_TARGET}}
+      TEST_MAIL_URL: ${{vars.TEST_MAIL_URL}}
+      TEST_MAIL_PORT: ${{vars.TEST_MAIL_PORT}}
+      TEST_MAIL_USERNAME: ${{secrets.TEST_MAIL_USERNAME}}
+      TEST_MAIL_PASSWORD: ${{secrets.TEST_MAIL_PASSWORD}}
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-go@v3
