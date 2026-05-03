@@ -14,7 +14,9 @@ func TestMail(t *testing.T) {
 
 	// get .env file
 	err := godotenv.Load()
-	if err != nil {
+	if err.Error() == "open .env: no such file or directory" {
+		// continue
+	} else if err != nil {
 		t.Error(err)
 	}
 
