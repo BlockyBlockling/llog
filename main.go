@@ -167,7 +167,7 @@ func Warn(msg any, a ...any) {
 	}
 }
 
-func WarnWithStack(msg any, a ...any){
+func WarnWithStack(msg any, a ...any) {
 	if currentLevel <= LevelDebug {
 		message := formatMessage(msg, a...)
 		printStdout(
@@ -276,7 +276,7 @@ func FatalNil(err error) (errNotNil bool) {
 
 func formatMessage(msg any, a ...any) string {
 	// Regular expression to match fmt directives
-	re := regexp.MustCompile(`%[sdv]`)
+	re := regexp.MustCompile(`%[\d.]*[sdvfeg]`)
 
 	msgString, ok := msg.(string)
 	if ok {
