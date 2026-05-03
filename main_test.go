@@ -525,9 +525,11 @@ func TestFatal(t *testing.T) {
 
 		// Call the Fatal function, which should panic
 		Fatal(testingMessage)
-	}
+	} else {
 
-	RunForkTest(t, "TestFatalWithPanicWithFork")
+		RunForkTest(t, "TestFatal")
+
+	}
 
 	//assert.Equal(t, err.Error(), "exit status 2")
 	//assert.Contains(t, stderr, "parsing \"A\": invalid syntax")
@@ -593,9 +595,11 @@ func TestFatalNil(t *testing.T) {
 			t.Log("Was false should be true")
 			t.Fail()
 		}
-	}
+	} else {
 
-	RunForkTest(t, "TestFatalNilWithPanicWithFork")
+		RunForkTest(t, "TestFatalNil")
+
+	}
 }
 
 // Run a fork test that may crash using os.exit.

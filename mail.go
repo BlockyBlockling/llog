@@ -20,10 +20,6 @@ func NotifyMail(msg any, a ...any) error {
 }
 
 func InitMail(from string, to []string, host string, port int, user string, password string, subject string) {
-	if subject == "" {
-		subject = "LLog Notification"
-	}
-
 	mail_dial = *gomail.NewDialer(host, port, user, password)
 	mail_from = from
 	mail_to = to
