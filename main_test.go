@@ -516,7 +516,6 @@ func RunLogFunctions() {
 	DebugWithStack("Testing")
 	Info("Testing")
 	Warn("Testing")
-	WarnWithStack("Testing")
 	Error("Testing")
 }
 
