@@ -118,8 +118,8 @@ func BaseFunctions(t *testing.T) {
 	//Check expected Output
 	var currentLine int = 0
 
-	// timestamp (YYYY/MM/DD HH:MM:SS) + message
-	reg := regexp.MustCompile(timestampRegex + " Testing")
+	// message
+	reg := regexp.MustCompile(messageRegex)
 	if !reg.MatchString(lines[currentLine]) {
 		t.Errorf("expected print log line not recieved")
 		t.Log("Regex: " + reg.String())
@@ -129,7 +129,7 @@ func BaseFunctions(t *testing.T) {
 	}
 	currentLine++
 
-	// timestamp + DEBU + message
+	// timestamp (YYYY/MM/DD HH:MM:SS) + DEBU + message
 	reg = regexp.MustCompile(timestampRegex + " " + debugRegex + " " + messageRegex)
 	if !reg.MatchString(lines[currentLine]) {
 		t.Errorf("expected debug log line not recieved")
@@ -184,6 +184,17 @@ func BaseFunctions(t *testing.T) {
 	}
 	currentLine++
 
+	// Replacer
+	reg = regexp.MustCompile("Has been replaced" + resetRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected replace line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
 	if lines[currentLine] == "" {
 		//Empty Line (as expected)
 		currentLine++
@@ -191,7 +202,9 @@ func BaseFunctions(t *testing.T) {
 
 	if currentLine != len(lines) {
 		t.Errorf("More lines Printed than analysed. Missing %d line/s.", len(lines)-currentLine)
-		t.Log(buf.String())
+		for lineIDAdd := range len(lines) - currentLine {
+			t.Log(lines[currentLine+lineIDAdd])
+		}
 	}
 
 	//reset stdout
@@ -253,8 +266,8 @@ func LogLevels(t *testing.T) {
 	//Check expected Output
 	var currentLine int = 0
 
-	// timestamp (YYYY/MM/DD HH:MM:SS) + message
-	reg := regexp.MustCompile(timestampRegex + " Testing")
+	// message
+	reg := regexp.MustCompile("Testing")
 	if !reg.MatchString(lines[currentLine]) {
 		t.Errorf("expected print log line not recieved")
 		t.Log("Regex: " + reg.String())
@@ -264,7 +277,7 @@ func LogLevels(t *testing.T) {
 	}
 	currentLine++
 
-	// timestamp + DEBU + message
+	// timestamp (YYYY/MM/DD HH:MM:SS) + DEBU + message
 	reg = regexp.MustCompile(timestampRegex + " " + debugRegex + " " + messageRegex)
 	if !reg.MatchString(lines[currentLine]) {
 		t.Errorf("expected debug log line not recieved")
@@ -319,6 +332,17 @@ func LogLevels(t *testing.T) {
 	}
 	currentLine++
 
+	// Replacer
+	reg = regexp.MustCompile("Has been replaced" + resetRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected replace line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
 	if lines[currentLine] == "" {
 		//Empty Line (as expected)
 		currentLine++
@@ -344,8 +368,8 @@ func LogLevels(t *testing.T) {
 	//Check expected Output
 	currentLine = 0
 
-	// timestamp (YYYY/MM/DD HH:MM:SS) + message
-	reg = regexp.MustCompile(timestampRegex + " Testing")
+	// message
+	reg = regexp.MustCompile("Testing")
 	if !reg.MatchString(lines[currentLine]) {
 		t.Errorf("expected print log line not recieved")
 		t.Log("Regex: " + reg.String())
@@ -355,7 +379,7 @@ func LogLevels(t *testing.T) {
 	}
 	currentLine++
 
-	//timespamp + INFO + message
+	// timestamp (YYYY/MM/DD HH:MM:SS) + INFO + message
 	reg = regexp.MustCompile(timestampRegex + " " + infoRegex + " " + messageRegex)
 	if !reg.MatchString(lines[currentLine]) {
 		t.Errorf("expected info log line not recieved")
@@ -388,6 +412,17 @@ func LogLevels(t *testing.T) {
 	}
 	currentLine++
 
+	// Replacer
+	reg = regexp.MustCompile("Has been replaced" + resetRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected replace line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
 	if lines[currentLine] == "" {
 		//Empty Line (as expected)
 		currentLine++
@@ -413,8 +448,8 @@ func LogLevels(t *testing.T) {
 	//Check expected Output
 	currentLine = 0
 
-	// timestamp (YYYY/MM/DD HH:MM:SS) + message
-	reg = regexp.MustCompile(timestampRegex + " Testing")
+	// message
+	reg = regexp.MustCompile("Testing")
 	if !reg.MatchString(lines[currentLine]) {
 		t.Errorf("expected print log line not recieved")
 		t.Log("Regex: " + reg.String())
@@ -424,7 +459,7 @@ func LogLevels(t *testing.T) {
 	}
 	currentLine++
 
-	// timestamp + WARN + filename:line+ message
+	// timestamp (YYYY/MM/DD HH:MM:SS) + WARN + filename:line+ message
 	reg = regexp.MustCompile(timestampRegex + " " + warnRegex + " " + stackRegex + " " + `\x1b\[33m` + messageRegex)
 	if !reg.MatchString(lines[currentLine]) {
 		t.Errorf("expected warn log line not recieved")
@@ -439,6 +474,17 @@ func LogLevels(t *testing.T) {
 	reg = regexp.MustCompile(timestampRegex + " " + errorRegex + " " + stackRegex + " " + `\x1b\[31m` + messageRegex)
 	if !reg.MatchString(lines[currentLine]) {
 		t.Errorf("expected error log line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
+	// Replacer
+	reg = regexp.MustCompile("Has been replaced" + resetRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected replace line not recieved")
 		t.Log("Regex: " + reg.String())
 		t.Logf("%q\n", lines[currentLine])
 		clean := reg.ReplaceAllString(lines[currentLine], "")
@@ -471,8 +517,8 @@ func LogLevels(t *testing.T) {
 	//Check expected Output
 	currentLine = 0
 
-	// timestamp (YYYY/MM/DD HH:MM:SS) + message
-	reg = regexp.MustCompile(timestampRegex + " Testing")
+	// message
+	reg = regexp.MustCompile("Testing")
 	if !reg.MatchString(lines[currentLine]) {
 		t.Errorf("expected print log line not recieved")
 		t.Log("Regex: " + reg.String())
@@ -493,6 +539,17 @@ func LogLevels(t *testing.T) {
 	}
 	currentLine++
 
+	// Replacer
+	reg = regexp.MustCompile("Has been replaced" + resetRegex)
+	if !reg.MatchString(lines[currentLine]) {
+		t.Errorf("expected replace line not recieved")
+		t.Log("Regex: " + reg.String())
+		t.Logf("%q\n", lines[currentLine])
+		clean := reg.ReplaceAllString(lines[currentLine], "")
+		t.Errorf("Not matching: %q", clean)
+	}
+	currentLine++
+
 	if lines[currentLine] == "" {
 		//Empty Line (as expected)
 		currentLine++
@@ -500,7 +557,7 @@ func LogLevels(t *testing.T) {
 
 	if currentLine != len(lines) {
 		t.Errorf("More lines Printed than analysed. Missing %d line/s.", len(lines)-currentLine)
-		t.Log(buf.String())
+		t.Log("Buffer: " + buf.String())
 	}
 
 	//reset stdout
@@ -517,6 +574,9 @@ func RunLogFunctions() {
 	Info("Testing")
 	Warn("Testing")
 	Error("Testing")
+	PrintNoNewLine(LevelPrint, "To be replaced")
+	ReplaceLine(LevelPrint, "Has been replaced")
+	Print("")
 }
 
 func TestFatal(t *testing.T) {

@@ -16,10 +16,12 @@ type Level int
 
 const (
 	LevelDebug Level = iota
+	LevelDebugWithStack
 	LevelInfo
 	LevelWarn
 	LevelError
 	LevelFatal
+	LevelPrint
 )
 
 var levelName = map[Level]string{
@@ -28,6 +30,7 @@ var levelName = map[Level]string{
 	LevelWarn:  "Warn",
 	LevelError: "Error",
 	LevelFatal: "Fatal",
+	LevelPrint: "Print",
 }
 
 var levelNameFormatted = map[Level]string{
@@ -92,52 +95,112 @@ func GetLevelByName(name string) (Level, error) {
 }
 
 func Print(msg any, a ...any) {
-	message := formatMessage(msg, a...)
-	printStdout(
-		timestamp(),
-		" ",
-		message,
-		reset,
-		"\n",
-	)
+	printStdout(formatLogLevel(LevelPrint, msg, a...))
 }
 
 func Debug(msg any, a ...any) {
-	if currentLevel <= LevelDebug {
-		message := formatMessage(msg, a...)
-		printStdout(
-			timestamp(),
-			" ",
-			levelNameFormatted[LevelDebug],
-			" ",
-			message,
-			reset,
-			"\n",
-		)
+	if showLevel(LevelDebug) {
+		printStdout(formatLogLevel(LevelDebug, msg, a...))
 	}
 }
 
 func DebugWithStack(msg any, a ...any) {
-	if currentLevel <= LevelDebug {
-		message := formatMessage(msg, a...)
-		printStdout(
+	if showLevel(LevelDebug) {
+		printStdout(formatLogLevel(LevelDebugWithStack, msg, a...))
+	}
+}
+
+func Info(msg any, a ...any) {
+	if showLevel(LevelInfo) {
+		printStdout(formatLogLevel(LevelInfo, msg, a...))
+	}
+}
+
+func Warn(msg any, a ...any) {
+	if showLevel(LevelWarn) {
+		printStdout(formatLogLevel(LevelWarn, msg, a...))
+	}
+}
+
+func Error(msg any, a ...any) {
+	if showLevel(LevelError) {
+		printStdout(formatLogLevel(LevelError, msg, a...))
+	}
+}
+
+// Recieve an Error with a possible Nil value. It will only log if err != nil
+// TODO: Add an optional attribute to add custom messages to the error
+func ErrNil(err error) (errNotNil bool) {
+	if err != nil {
+		if showLevel(LevelError) {
+			printStdout(formatLogLevel(LevelError, err.Error()))
+		}
+		return true
+	}
+
+	return false
+}
+
+func Fatal(msg any, a ...any) {
+	if showLevel(LevelFatal) {
+		format := fmt.Sprint(msg)
+		printStdout(formatLogLevel(LevelFatal, format, a...))
+
+		//Exit
+		os.Exit(2) //using the same exit code as panic
+	}
+}
+
+func FatalNil(err error) (errNotNil bool) {
+	if showLevel(LevelFatal) && err != nil {
+		printStdout(formatLogLevel(LevelFatal, err.Error()))
+
+		//Exit
+		os.Exit(2) //using the same exit code as panic
+	}
+	return false
+}
+
+func PrintNoNewLine(level Level, msg any, a ...any) {
+	if showLevel(level) {
+		printStdout("\r", strings.TrimSuffix(formatLogLevel(level, msg, a...), "\n"))
+	}
+}
+
+func ReplaceLine(level Level, msg any, a ...any) {
+	if showLevel(level) {
+		printStdout("\r", strings.TrimSuffix(formatLogLevel(level, msg, a...), "\n"))
+	}
+}
+
+func formatLogLevel(level Level, msg any, a ...any) string {
+	stackLocatorIndex := 3
+	message := formatMessage(msg, a...)
+	switch level {
+	case LevelDebug:
+		return fmt.Sprint(
 			timestamp(),
 			" ",
 			levelNameFormatted[LevelDebug],
-			" ",
-			stackLoc(2),
 			" ",
 			message,
 			reset,
 			"\n",
 		)
-	}
-}
-
-func Info(msg any, a ...any) {
-	if currentLevel <= LevelInfo {
-		message := formatMessage(msg, a...)
-		printStdout(
+	case LevelDebugWithStack:
+		return fmt.Sprint(
+			timestamp(),
+			" ",
+			levelNameFormatted[LevelDebug],
+			" ",
+			stackLoc(stackLocatorIndex),
+			" ",
+			message,
+			reset,
+			"\n",
+		)
+	case LevelInfo:
+		return fmt.Sprint(
 			timestamp(),
 			" ",
 			levelNameFormatted[LevelInfo],
@@ -146,80 +209,39 @@ func Info(msg any, a ...any) {
 			reset,
 			"\n",
 		)
-	}
-}
-
-func Warn(msg any, a ...any) {
-	if currentLevel <= LevelWarn {
-		message := formatMessage(msg, a...)
-		printStdout(
+	case LevelWarn:
+		return fmt.Sprint(
 			timestamp(),
 			" ",
 			levelNameFormatted[LevelWarn],
 			" ",
-			stackLoc(2),
+			stackLoc(stackLocatorIndex),
 			" ",
 			Yellow,
 			message,
 			reset,
 			"\n",
 		)
-	}
-}
-
-func Error(msg any, a ...any) {
-	if currentLevel <= LevelError {
-		message := formatMessage(msg, a...)
-		printStdout(
+	case LevelError:
+		return fmt.Sprint(
 			timestamp(),
 			" ",
 			levelNameFormatted[LevelError],
 			" ",
-			stackLoc(2),
+			stackLoc(stackLocatorIndex),
 			" ",
 			Red,
 			message,
 			reset,
 			"\n",
 		)
-	}
-}
-
-// Recieve an Error with a possible Nil value. It will only log if err != nil
-// TODO: Add an optional attribute to add custom messages to the error
-func ErrNil(err error) (errNotNil bool) {
-	if currentLevel <= LevelError {
-		if err != nil {
-
-			printStdout(
-				timestamp(),
-				" ",
-				levelNameFormatted[LevelError],
-				" ",
-				stackLoc(2),
-				" ",
-				Red,
-				err.Error(),
-				reset,
-				"\n",
-			)
-
-			return true
-		}
-	}
-	return false
-}
-
-func Fatal(msg any, a ...any) {
-	if currentLevel <= LevelFatal {
-		format := fmt.Sprint(msg)
-		message := fmt.Sprintf(format, a...)
-		printStdout(
+	case LevelFatal:
+		return fmt.Sprint(
 			timestamp(),
 			" ",
 			levelNameFormatted[LevelFatal],
 			" ",
-			stackLoc(2),
+			stackLoc(3),
 			" ",
 			bold,
 			Red,
@@ -227,34 +249,15 @@ func Fatal(msg any, a ...any) {
 			reset,
 			"\n",
 		)
-
-		//Exit
-		os.Exit(2) //using the same exit code as panic
 	}
+
+	//Default print
+	return fmt.Sprint(message, reset, "\n")
 }
 
-func FatalNil(err error) (errNotNil bool) {
-	if currentLevel <= LevelFatal {
-		if err != nil {
-			printStdout(
-				timestamp(),
-				" ",
-				levelNameFormatted[LevelFatal],
-				" ",
-				stackLoc(2),
-				" ",
-				bold,
-				Red,
-				err.Error(),
-				reset,
-				"\n",
-			)
+func showLevel(level Level) bool {
+	return currentLevel <= level
 
-			//Exit
-			os.Exit(2) //using the same exit code as panic
-		}
-	}
-	return false
 }
 
 func formatMessage(msg any, a ...any) string {
